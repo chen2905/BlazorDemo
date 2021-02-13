@@ -1,0 +1,180 @@
+﻿
+@page "/tasklist/{PersonName}/{PersonID}"
+
+@using DataAccessLibrary
+@using DataAccessLibrary.Models
+@using BlazorDemoUI.Models
+
+@inject ITaskData _db
+@inject TaskStore _taskStore
+@inject IActionDispatcher _actionDispatcher
+
+<h3>@PersonName has @personTaskList.Count(x => !x.IsComplete) task to complete</h3>
+
+@if (taskList.Count > 0)
+{
+    <div class="progress my-2">
+        <div class="progress-bar" role="progressbar"
+             style="width: @(percentDone)%"
+             aria-valuemin="0" aria-valuemax="100">@(percentDone)%</div>
+    </div>
+}
+
+<EditForm class="form-inline my-12" Model="@newTask" OnValidSubmit="InsertPersonTask">
+    <InputText class="form-control mx-6" @bind-Value="newTask.Task" />
+    <button class="btn btn-outline-primary" type="submit">Add Task</button>
+</EditForm>
+Click the task bar to complete the task
+<ul class="list-group">
+
+
+    @foreach (var task in personTaskList)
+    {
+        @if (task.Task.ToLower().Contains(SearchTerm))
+        {
+
+        @if (task.IsComplete)
+        {
+            <li class="list-group-item list-group-item-secondary my-1"
+                @onclick="@(e => UpdatePersonTask(task))">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-10">
+                            <del>Completed: @task.Task</del> <br />
+                            <br />
+                        </div>
+                        <div class="col-2 float-right">
+                            <button type="button" class="btn btn-danger" @onclick="@(e => RemovePersonTask(task))">X</button>
+                        </div>
+                    </div>
+                </div>
+            </li>
+        }
+        else
+        {
+            <li class="list-group-item list-group-item-success my-1"
+                @onclick="@(e => UpdatePersonTask(task))">
+
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-10">
+                            Task To Do:@task.Task<br />
+                            <br />
+                        </div>
+                        <div class="col-2 float-right">
+                            <button type="button" class="btn btn-danger" @onclick="@(e => RemovePersonTask(task))">X</button>
+                        </div>
+                    </div>
+                </div>
+            </li>
+        }
+        }
+    }
+</ul>
+@code {
+    //input from parent component/path
+    [Parameter]
+    public string PersonName { get; set; }
+    [Parameter]
+    public string PersonID { get; set; }
+    [Parameter]
+    public string SearchTerm { get; set; }
+    //output to parent
+
+    //output to parent
+    [Parameter]
+    public EventCallback<int> setTaskCount { get; set; }
+
+
+
+
+    private List<TaskModel> taskList = new List<TaskModel>();
+    private List<TaskModel> personTaskList = new List<TaskModel>();
+    private TaskModel newTask = new TaskModel();
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        _taskStore.AddStateChangeListeners(() => { StateHasChanged(); });
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        taskList = await _db.GetTask();
+
+        personTaskList = taskList.Where(x => x.xPersonID == int.Parse(PersonID.ToString())).ToList();
+
+        await setTaskCount.InvokeAsync(personTaskList.Count);
+    }
+    //protected override async Task OnParametersSetAsync()
+    //{
+    //    taskList = await _db.GetTask();
+
+    //    personTaskList = taskList.Where(x=>x.Task.ToLower().Contains(SearchTerm.ToLower()) &&  x.xPersonID == int.Parse(PersonID.ToString())).ToList();
+
+    //    await setTaskCount.InvokeAsync(personTaskList.Count);
+    //}
+
+
+
+
+
+
+
+
+    private int percentDone
+    {
+        get
+        {
+
+            if (personTaskList.Count == 0)
+            {
+                return 0;
+            }
+            else { return (personTaskList.Count(x => x.IsComplete) * 100) / personTaskList.Count; }
+
+        }
+    }
+
+    private async Task InsertPersonTask()
+    {
+        TaskModel pt = new TaskModel
+        {
+            Task = newTask.Task,
+            IsComplete = false,
+            xPersonID = int.Parse(PersonID.ToString())
+        };
+
+        await _db.InsertTask(pt);
+
+        personTaskList.Add(pt);
+        await setTaskCount.InvokeAsync(personTaskList.Count);
+        newTask = new TaskModel();
+        //_taskStore.IncrementCount();
+        _actionDispatcher.Dispatch(new IncreamentAction());
+    }
+
+    private async Task UpdatePersonTask(TaskModel pt)
+    {
+
+        if (pt.IsComplete)
+        {
+            pt.IsComplete = false;
+        }
+        else
+        {
+            pt.IsComplete = true;
+        }
+
+        await _db.UpdateTask(pt);
+
+    }
+    private async Task RemovePersonTask(TaskModel pt)
+    {
+        pt.TaskStatus = 1;
+        await _db.UpdateTask(pt);
+        personTaskList.Remove(pt);
+        await setTaskCount.InvokeAsync(personTaskList.Count);
+        //_taskStore.DecrementCount();
+        _actionDispatcher.Dispatch(new DecreamentAction());
+    }
+}

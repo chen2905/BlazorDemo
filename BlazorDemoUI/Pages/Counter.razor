@@ -1,0 +1,18 @@
+﻿@page "/counter"
+@inject Blazored.SessionStorage.ISessionStorageService _session
+<h1>Counter</h1>
+
+<p>Current count: @currentCount</p>
+<p>Go to the home page to see the session count value</p>
+
+<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+
+@code {
+    private int currentCount = 0;
+    
+    private void IncrementCount()
+    {
+        currentCount++;
+        _session.SetItemAsync("count", currentCount);
+    }
+}

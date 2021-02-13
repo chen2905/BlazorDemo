@@ -1,0 +1,97 @@
+﻿@page "/Data/People"
+@inject IPeopleData _db
+<TitleComponent title="ECJ People List"></TitleComponent>
+<h4>Insert New Person</h4>
+<EditForm Model="@newPerson" OnValidSubmit="@InsertPerson">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="row">
+        <div class="col-sm-3">
+            <FieldComponent Label="">
+                <Control>
+                    <InputText id="firstName" @bind-Value="newPerson.FirstName" placeholder="First Name" />
+                </Control>
+            </FieldComponent>
+        </div>
+        <div class="col-sm-3">
+            <FieldComponent Label="">
+                <Control>
+                    <InputText id="lastName" @bind-Value="newPerson.LastName" placeholder="Last Name" />
+                </Control>
+            </FieldComponent>
+        </div>
+        <div class="col-sm-3">
+            <FieldComponent Label="">
+                <Control>
+                    <InputText id="emailAddress" @bind-Value="newPerson.EmailAddress" placeholder="Email" />
+                </Control>
+
+            </FieldComponent>
+        </div>
+        <div class="col-sm-3"> <button type="submit" class="btn btn-primary">Submit</button></div>
+    </div>
+</EditForm>
+@if (people is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-3">
+            <span class="text-primary">First Name</span>
+        </div>
+        <div class="col-md-3 text-large">
+            <span class="text-primary">Last Name</span>
+        </div>
+        <div class="col-md-3 text-large">
+            <span class="text-primary">Email</span>
+        </div>
+        <div class="col-md-3 text-large">
+            <span class="text-primary">Task(s)</span>
+        </div>
+    </div>
+
+    @foreach (var person in people)
+    {
+        <div class="row">
+            <div class="col-md-3">
+                @person.FirstName
+            </div>
+            <div class="col-md-3">
+                @person.LastName
+            </div>
+            <div class="col-md-3">
+                @person.EmailAddress
+            </div>
+            <div class="col-md-3">
+                <NavLink class="nav-link" href="@($"/tasklist/{person.FirstName}/{person.Id}")">
+                    <span class="oi oi-task" aria-hidden="true"></span>
+                </NavLink>
+            </div>
+        </div>
+
+    }
+}
+
+@code {
+    private List<PersonModel> people;
+    private DisplayPersonModel newPerson = new DisplayPersonModel();
+    protected override async Task OnInitializedAsync()
+    {
+        people = await _db.GetPeople();
+    }
+    private async Task InsertPerson()
+    {
+        PersonModel p = new PersonModel
+        {
+            FirstName = newPerson.FirstName,
+            LastName = newPerson.LastName,
+            EmailAddress = newPerson.EmailAddress
+        };
+
+        await _db.InsertPerson(p);
+        people.Add(p);
+        newPerson = new DisplayPersonModel();
+    }
+}

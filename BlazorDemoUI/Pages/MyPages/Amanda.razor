@@ -1,0 +1,31 @@
+﻿@page "/Amanda"
+
+@inject IPeopleData _db
+<h3>Amanda's email address</h3>
+
+
+@if (amanda is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+
+
+    @foreach (var person in amanda)
+    {
+
+        @person.EmailAddress
+
+    }
+}
+    @code {
+private List<PersonModel> people;
+    private List<PersonModel> amanda;
+
+    protected override async Task OnInitializedAsync()
+    {
+        people = await _db.GetPeople();
+        amanda = people.Where(x => x.FirstName.ToLower() == "amanda").ToList();
+    }
+    }

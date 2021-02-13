@@ -1,0 +1,83 @@
+﻿@page "/dashboard"
+@inject IPeopleData _db
+@inject TaskStore _taskStore
+@inject IActionDispatcher _actionDispatcher
+<TitleComponent title="ECJ Task dashboard"></TitleComponent>
+@if (people is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    @*<Amanda></Amanda>*@
+
+    <div class="row">
+        <div class="col-sm-3">
+
+            <input id="inpSearchTerm" @bind="@SearchTerm" class="form-control mx-6" placeholder="Enter somethings" />
+        </div>
+
+        <div class="col-sm-3">
+            <button class="btn btn-outline-primary" @onclick="btnSearchClick">Search</button>
+            <button class="btn btn-outline-primary" @onclick="btnClearClick">Clear</button>
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        @foreach (var person in people)
+        {
+            <div class="shadow-lg p-3 col-sm-6 col-md-4">
+
+                <TaskList PersonName="@person.FirstName" PersonID="@person.Id.ToString()" SearchTerm="@SearchTerm" setTaskCount="setPersonTaskCount"></TaskList>
+
+            </div>
+        }
+    </div>
+}
+
+@code{
+
+    private int person1TaskCount = 0;
+    private int person2TaskCount = 0;
+    private string SearchTerm { get; set; } = "";
+
+
+
+    private void setPersonTaskCount(int taskCount)
+    {
+        person1TaskCount = taskCount;
+    }
+
+    private void setPerson2TaskCount(int taskCount)
+    {
+        person2TaskCount = taskCount;
+    }
+
+    private List<PersonModel> people;
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        StateHasChanged();
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        people = await _db.GetPeople();
+
+
+
+    }
+
+    private void btnSearchClick()
+    {
+        StateHasChanged();
+    }
+    private void btnClearClick()
+    {
+        SearchTerm = "";
+        StateHasChanged();
+    }
+}
+
+
+
+

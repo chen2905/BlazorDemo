@@ -1,0 +1,90 @@
+﻿@page "/weather"
+
+@inject IHttpClientFactory _clientFactory
+
+<h3>ECJ Sydney real time Weather from Meta Weather API- show how to do http request to an API</h3>
+
+@if (string.IsNullOrWhiteSpace(errorString) == false)
+{
+    <div class="h2">@errorString</div>
+}
+else if (forecast is null)
+{
+    <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" Style="margin-bottom: 20px" />
+}
+else
+{
+    <table class="table table-striped">
+        <thead class="thead-dark">
+            <tr>
+                <th>Date</th>
+                <th>Weather State</th>
+                <th>Low</th>
+                <th>High</th>
+            </tr>
+        </thead>
+        <tbody>
+
+
+            <Virtualize Items="forecast.Consolidated_weather" Context="w">
+
+                <tr>
+                    <td>@w.applicable_date</td>
+                    <td><img src="/icons/@(w.weather_state_abbr).svg" style="max-width: 10%" /></td>
+                    <td>@Math.Round(w.min_temp, 1)  °</td>
+                    <td>@Math.Round(w.max_temp, 1)  °</td>
+
+                </tr>
+            </Virtualize>
+            @*@foreach (var w in forecast.Consolidated_weather)
+                {
+                    int intMinTemp = (int)w.min_temp;
+                    int intMaxTemp = (int)w.max_temp;
+                    <tr>
+                        <td>@w.applicable_date</td>
+                        <td><img src="/icons/@(w.weather_state_abbr).svg" style="max-width: 10%" /></td>
+                        <td> @intMinTemp °C</td>
+                        <td> @intMaxTemp °C</td>
+
+                    </tr>
+                }*@
+        </tbody>
+    </table>
+}
+
+@code {
+    WeatherForecastModel forecast;
+    string errorString;
+
+    protected override async Task OnInitializedAsync()
+    {
+        //var request = new HttpRequestMessage(HttpMethod.Get,
+        //    "https://www.metaweather.com/api/location/2471217/");
+
+        //var client = _clientFactory.CreateClient();
+
+        //HttpResponseMessage response = await client.SendAsync(request);
+
+        //if (response.IsSuccessStatusCode)
+        //{
+        //    forecast = await response.Content.ReadFromJsonAsync<WeatherForecastModel>();
+        //    errorString = null;
+        //}
+        //else
+        //{
+        //    errorString = $"There was an error getting our forecast: { response.ReasonPhrase }";
+        //}
+
+        var client = _clientFactory.CreateClient("meta");
+
+        try
+        {
+            forecast = await client.GetFromJsonAsync<WeatherForecastModel>("location/1105779/");
+            errorString = null;
+        }
+        catch (Exception ex)
+        {
+            errorString = $"There was an error getting our forecast: { ex.Message }";
+        }
+    }
+}

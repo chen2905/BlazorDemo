@@ -1,0 +1,72 @@
+﻿@page "/"
+@inject Blazored.SessionStorage.ISessionStorageService _session
+<h1>Hello, ECJ!</h1>
+
+Welcome to ECJ Blazor demo site.
+
+<ul class="nav flex-column">
+
+    <li class="nav-item px-3">
+        <NavLink class="nav-link" href="counter">
+            <span class="oi oi-plus" aria-hidden="true"></span> Counter (To check singalR,websocket and adding/updating sessions)
+        </NavLink>
+
+    </li>
+    <li class="nav-item px-3">
+        @if (@sessionCount != 0)
+        {
+            <p>The session count is :<strong> @sessionCount.ToString()</strong></p>
+        }
+
+    </li>
+    <li class="nav-item px-3">
+        <NavLink class="nav-link" href="vfetchdata">
+            <span class="oi oi-list-rich" aria-hidden="true"></span> Fetch data (To learn how service work), it is fetching 50,000 rows using <br/>
+            old way, so it is very slow
+        </NavLink>
+    </li>
+
+    <li class="nav-item px-3">
+        <NavLink class="nav-link" href="virsualizefetchdata">
+            <span class="oi oi-list-rich" aria-hidden="true"></span>Virtualize Fetch data (To learn how to use Virturalize components to quick loading 50,000 rows)
+        </NavLink>
+    </li>
+    <li class="nav-item px-3">
+        <NavLink class="nav-link" href="Data/People">
+            <span class="oi oi-people" aria-hidden="true"></span> People (To learn how to  connect sql database, create model,depper)
+        </NavLink>
+    </li>
+
+    <li class="nav-item px-3">
+        <NavLink class="nav-link" href="dashboard">
+            <span class="oi oi-task" aria-hidden="true"></span> ECJ Task Dashboard (To learn how to use blazor component and communications between components, using dependence injection)
+        </NavLink>
+    </li>
+    <li class="nav-item px-3">
+        <NavLink class="nav-link" href="weather">
+            <span class="oi oi-sun" aria-hidden="true"></span> Sydney Weather (To learn how to send http request to API)
+        </NavLink>
+    </li>
+    <li class="nav-item px-3">
+        <NavLink class="nav-link" href="gmapweather">
+            <span class="oi oi-map" aria-hidden="true"></span> Gmap/Weather (To learn how to use google map component without javascript)
+        </NavLink>
+    </li>
+</ul>
+@code {
+    private int sessionCount = 0;
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            sessionCount = await _session.GetItemAsync<int>("count");
+        }
+        catch
+        {
+
+        }
+
+
+    }
+
+}

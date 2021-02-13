@@ -1,0 +1,17 @@
+﻿
+
+
+<div class="form-outline">
+    @Control
+    <label class="form-label" for="typeText">@Label</label>
+</div>
+
+
+@code {
+    [Parameter]
+
+    public string Label { get; set; }
+
+    [Parameter]
+    public RenderFragment Control { get; set; }
+}
